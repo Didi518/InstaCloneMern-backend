@@ -34,3 +34,96 @@ exports.getAllPosts = async (req, res) => {
       res.status(500).json({ msg: err.message });
     });
 };
+
+exports.likePost = async (req, res) => {
+  try {
+    await Post.findByIdAndUpdate(
+      req.body.postId,
+      {
+        $push: { likes: req.user._id },
+      },
+      { new: true }
+    )
+      .populate('postedBy', '_id name pic')
+      .populate('comments.postedBy', '_id name pic')
+      .then((result) => {
+        res.json(result);
+      })
+      .catch((err) => {
+        return res
+          .status(400)
+          .json({ msg: 'Ce post est introuvable', err: err });
+      });
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+};
+
+exports.unlikePost = async (req, res) => {
+  try {
+    await Post.findByIdAndUpdate(
+      req.body.postId,
+      {
+        $pull: { likes: req.user._id },
+      },
+      { new: true }
+    )
+      .populate('postedBy', '_id name pic')
+      .populate('comments.postedBy', '_id name pic')
+      .then((result) => {
+        res.json(result);
+      })
+      .catch((err) => {
+        return res
+          .status(400)
+          .json({ msg: 'Ce post est introuvable', err: err });
+      });
+  } catch (error) {
+    return res.status(500).json({ msg: error.message });
+  }
+};
+
+exports.savePost = async (req, res) => {
+  const saved = {
+    savedBy: req.user._id,
+    profilePic: req.user.pic,
+    postId: req.body.postId,
+  };
+  await Post.findByIdAndUpdate(
+    req.body.postId,
+    {
+      $push: { saved: saved },
+    },
+    { new: true }
+  )
+    .populate('postedBy', '_id name pic')
+    .populate('comments.postedBy', '_id name pic')
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      return res.status(400).json({ msg: 'Ce post est introuvable', err: err });
+    });
+};
+
+exports.unsavePost = async (req, res) => {
+  await Post.findByIdAndUpdate(
+    req.body.postId,
+    {
+      $pull: {
+        saved: {
+          savedBy: req.user._id,
+          postId: req.body.postId,
+          _id: req.body.savedId,
+        },
+      },
+    },
+    { new: true }
+  )
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      return res.status(400).json({ msg: 'Ce post est introuvable', err: err });
+    });
+};

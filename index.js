@@ -22,7 +22,7 @@ const port = process.env.PORT || 8000;
 
 app.listen(port, () => {
   console.log(`Le serveur fonctionne sur le port: ${port}`);
-  mongoose.connect(process.env.MONGODBURI);
+  mongoose.connect(process.env.MONGODB_URI);
   mongoose.connection.on('connected', () => {
     console.log('connecté à mongo');
   });

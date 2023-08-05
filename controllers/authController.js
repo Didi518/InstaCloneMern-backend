@@ -48,7 +48,7 @@ exports.login = async (req, res) => {
     const refresh_token = createRefreshToken({ id: user._id });
     res.cookie('refreshtoken', refresh_token, {
       httpOnly: true,
-      path: '/api/refresh-token',
+      path: '/api/refresh_token',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
     res.json({
