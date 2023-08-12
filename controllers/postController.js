@@ -127,3 +127,90 @@ exports.unsavePost = async (req, res) => {
       return res.status(400).json({ msg: 'Ce post est introuvable', err: err });
     });
 };
+
+exports.addComment = async (req, res) => {
+  const comment = {
+    text: req.body.text,
+    postedBy: req.user._id,
+  };
+  await Post.findByIdAndUpdate(
+    req.body.postId,
+    { $push: { comments: comment } },
+    { new: true }
+  )
+    .populate('postedBy', '_id name pic')
+    .populate('comments.postedBy', '_id name pic')
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      return res.status(422).json({ msg: err });
+    });
+};
+
+exports.getAllComments = async (req, res) => {
+  await Post.find({})
+    .populate('comments', '_id text postedBy ')
+    .sort('-createdAt')
+    .then((posts) => {
+      res.json({ posts });
+    })
+    .catch((err) => {
+      return res.status(422).json({ msg: err });
+    });
+};
+
+exports.deleteComment = async (req, res) => {
+  await Post.findByIdAndUpdate(
+    req.body.postId,
+    {
+      $pull: {
+        comments: {
+          text: req.body.commentText,
+          postedBy: req.body.commentPostedBy,
+          _id: req.body.commentId,
+        },
+      },
+    },
+    { new: true }
+  )
+    .populate('postedBy', '_id name pic')
+    .populate('comments.postedBy', '_id name pic')
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      return res.status(422).json({ msg: "Ce post n'existe pas", err: err });
+    });
+};
+
+exports.deletePost = async (req, res) => {
+  await Post.findByIdAndUpdate({ _id: req.params.postId })
+    .populate('postedBy', '_id')
+    .then((post) => {
+      if (post.postedBy._id.toString()) {
+        post
+          .deleteOne()
+          .then((result) => {
+            res.json({ msg: 'Post supprimé', result });
+          })
+          .catch((err) => {
+            return res.status(400).json({ msg: err.message });
+          });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({ msg: err.message });
+    });
+};
+
+exports.explore = async (req, res) => {
+  try {
+    let explore = await Post.find({})
+      .populate('postedBy', '_id name pic')
+      .populate('comments.postedBy', '_id name pic');
+    res.json(explore);
+  } catch (error) {
+    return res.status(422).json({ msg: error.message });
+  }
+};

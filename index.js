@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 
 const authRouter = require('./routes/auth/auth');
 const postRouter = require('./routes/posts/posts');
+const userRouter = require('./routes/users/users');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/posts', postRouter);
+app.use('/api/users', userRouter);
 
 const port = process.env.PORT || 8000;
 
